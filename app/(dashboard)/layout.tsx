@@ -8,6 +8,7 @@ const NAV = [
   { href: "/ap-world", label: "AP World History", icon: "🌍" },
   { href: "/ap-csp", label: "AP CS Principles", icon: "💻" },
   { href: "/ap-precalc", label: "AP Precalculus", icon: "📐" },
+  { href: "/sat", label: "SAT", icon: "✏" },
 ];
 
 export default async function DashboardLayout({

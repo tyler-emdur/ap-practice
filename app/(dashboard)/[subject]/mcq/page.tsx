@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { getSubject } from "@/lib/subjects";
 import { AP_WORLD_MCQ, type MCQQuestion } from "@/lib/banks/ap-world/mcq";
+import { SAT_MCQ } from "@/lib/banks/sat/mcq";
 import { shuffleArray } from "@/lib/utils";
 
 type Choice = "A" | "B" | "C" | "D";
@@ -12,6 +13,7 @@ const QUESTION_COUNTS = [10, 25, 50] as const;
 
 function getBank(subjectId: string): MCQQuestion[] {
   if (subjectId === "ap-world") return AP_WORLD_MCQ;
+  if (subjectId === "sat") return SAT_MCQ as unknown as MCQQuestion[];
   return [];
 }
 
@@ -341,7 +343,7 @@ export default function MCQPage() {
               </p>
               <p className="text-xs text-[#8a8070] mt-0.5" style={{ fontFamily: "var(--font-mono)" }}>
                 {selectedUnits.includes("all")
-                  ? "All 9 units · randomized"
+                  ? `All ${subject.units.length} units · randomized`
                   : `${selectedUnits.length} unit${selectedUnits.length !== 1 ? "s" : ""} selected · randomized`}
               </p>
             </div>

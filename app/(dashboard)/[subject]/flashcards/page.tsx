@@ -4,10 +4,12 @@ import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { getSubject } from "@/lib/subjects";
 import { AP_WORLD_FLASHCARDS, type Flashcard } from "@/lib/banks/ap-world/flashcards";
+import { SAT_FLASHCARDS } from "@/lib/banks/sat/flashcards";
 import { shuffleArray } from "@/lib/utils";
 
 function getBank(subjectId: string): Flashcard[] {
   if (subjectId === "ap-world") return AP_WORLD_FLASHCARDS;
+  if (subjectId === "sat") return SAT_FLASHCARDS as unknown as Flashcard[];
   return [];
 }
 
@@ -245,7 +247,7 @@ export default function FlashcardsPage() {
               </p>
               <p className="text-xs text-[#8a8070] mt-0.5" style={{ fontFamily: "var(--font-mono)" }}>
                 {selectedUnits.includes("all")
-                  ? "All 9 units"
+                  ? `All ${subject.units.length} units`
                   : `${selectedUnits.length} unit${selectedUnits.length !== 1 ? "s" : ""} selected`}
               </p>
             </div>
