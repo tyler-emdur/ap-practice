@@ -1,15 +1,22 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { SUBJECTS } from "@/lib/subjects";
+import { ensureUserForClerk } from "@/lib/users";
 
 export default async function DashboardPage() {
   const { userId } = await auth();
 
   let progress: Array<{ subject: string; unitId: string; masteryScore: number; lastStudied: Date | null }> = [];
   if (userId) {
+    const clerkUser = await currentUser();
+    const dbUser = await ensureUserForClerk({
+      clerkId: userId,
+      email: clerkUser?.primaryEmailAddress?.emailAddress,
+      name: `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() || undefined,
+    });
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: { id: dbUser.id },
       include: { progress: true },
     });
     progress = user?.progress ?? [];

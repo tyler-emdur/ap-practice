@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getSubject } from "@/lib/subjects";
 import { AP_WORLD_FLASHCARDS, type Flashcard } from "@/lib/banks/ap-world/flashcards";
@@ -26,11 +26,33 @@ export default function FlashcardsPage() {
   const [current, setCurrent] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(false);
+  const [knownCount, setKnownCount] = useState(0);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const sessionSavedRef = useRef(false);
 
   const filteredCards = useMemo(() => {
     if (selectedUnits.includes("all")) return bank;
     return bank.filter((c) => selectedUnits.includes(c.unit));
   }, [bank, selectedUnits]);
+
+  useEffect(() => {
+    if (!subject || !done || cards.length === 0 || sessionSavedRef.current) return;
+    sessionSavedRef.current = true;
+    const durationSeconds = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : null;
+
+    void fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subjectId: subject.id,
+        mode: "flashcard",
+        score: Math.round((knownCount / cards.length) * 100),
+        totalQ: cards.length,
+        correctQ: knownCount,
+        duration: durationSeconds,
+      }),
+    });
+  }, [cards.length, done, knownCount, startedAt, subject]);
 
   if (!subject) return <div className="p-8 text-[#8a8070]">Subject not found</div>;
 
@@ -55,10 +77,14 @@ export default function FlashcardsPage() {
     setFlipped(false);
     setDone(false);
     setStarted(true);
+    setKnownCount(0);
+    setStartedAt(Date.now());
+    sessionSavedRef.current = false;
   };
 
-  const next = () => {
+  const next = (knewCard: boolean) => {
     setFlipped(false);
+    if (knewCard) setKnownCount((count) => count + 1);
     if (current + 1 >= cards.length) {
       setDone(true);
     } else {
@@ -78,7 +104,7 @@ export default function FlashcardsPage() {
         </p>
         <div className="flex gap-3">
           <button
-            onClick={() => { setCards(shuffleArray(filteredCards)); setCurrent(0); setFlipped(false); setDone(false); }}
+            onClick={() => { setCards(shuffleArray(filteredCards)); setCurrent(0); setFlipped(false); setDone(false); setKnownCount(0); setStartedAt(Date.now()); sessionSavedRef.current = false; }}
             className="px-6 py-2 rounded-sm bg-[#c9a84c] text-[#0d0f1a] font-semibold hover:opacity-90 transition-opacity"
             style={{ fontFamily: "var(--font-mono)" }}
           >
@@ -163,14 +189,14 @@ export default function FlashcardsPage() {
         {flipped && (
           <div className="flex gap-3">
             <button
-              onClick={next}
+              onClick={() => next(false)}
               className="flex-1 py-2.5 rounded-sm border border-[#ef4444] text-[#ef4444] text-sm hover:bg-[#ef4444] hover:text-white transition-colors"
               style={{ fontFamily: "var(--font-mono)" }}
             >
               Still learning
             </button>
             <button
-              onClick={next}
+              onClick={() => next(true)}
               className="flex-1 py-2.5 rounded-sm border border-[#22c55e] text-[#22c55e] text-sm hover:bg-[#22c55e] hover:text-white transition-colors"
               style={{ fontFamily: "var(--font-mono)" }}
             >

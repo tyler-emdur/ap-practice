@@ -51,7 +51,7 @@ export default function FRQPage() {
     const res = await fetch("/api/frq/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject: subject.name, frqType: selectedType }),
+      body: JSON.stringify({ subjectId: subject.id, frqType: selectedType }),
     });
     const data = await res.json();
     setFrq(data.frq ?? null);
@@ -65,7 +65,7 @@ export default function FRQPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        subject: subject.name,
+        subjectId: subject.id,
         frqType: frq.type,
         rubric: frq.rubric,
         prompt: frq.prompt,

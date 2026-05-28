@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APex
 
-## Getting Started
+AP exam study platform for AP World History: Modern, AP Computer Science Principles, and AP Precalculus. APex combines large static flashcard and MCQ banks with AI-graded free-response practice — so rote drilling is instant and free, while FRQ feedback is powered by Gemini. Features per-unit progress tracking, spaced repetition, unit selector filters, and a dark academic UI built for long study sessions.
 
-First, run the development server:
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router), TypeScript, Tailwind CSS v4
+- **Auth**: Clerk
+- **Database**: Neon Postgres + Prisma ORM
+- **AI**: Google Gemini API (FRQ generation and grading)
+- **File Storage**: Vercel Blob
+- **Deployment**: Vercel
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+cd apex
+npm install
+```
+
+### 2. Configure environment variables
+
+Create `.env.local` in the `apex/` directory:
+
+```
+# Clerk — from clerk.com dashboard
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# Gemini — from Google AI Studio (aistudio.google.com)
+GEMINI_API_KEY=
+
+# Neon Postgres — from neon.tech dashboard
+DATABASE_URL=
+
+# Vercel Blob — from Vercel dashboard
+BLOB_READ_WRITE_TOKEN=
+```
+
+### 3. Run database migrations
+
+```bash
+npx prisma migrate dev
+```
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Static question banks
+MCQ and flashcard content lives in `lib/banks/ap-world/` — 180+ flashcards and 135+ MCQ questions across all 9 AP World units. No AI call, no latency.
 
-## Learn More
+### FRQ practice
+SAQs, DBQs, and LEQs are generated and graded via Gemini using rubrics modeled on real College Board scoring guidelines. Results are persisted to Postgres for progress tracking.
 
-To learn more about Next.js, take a look at the following resources:
+### Unit filtering
+Every study mode (flashcards, MCQ, FRQ) exposes a unit selector so you can drill one unit or cross-unit combinations. MCQ sessions let you choose 10 / 25 / 50 questions from a shuffled pool.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Active** — last updated April 2026.

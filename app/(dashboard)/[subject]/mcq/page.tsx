@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getSubject } from "@/lib/subjects";
 import { AP_WORLD_MCQ, type MCQQuestion } from "@/lib/banks/ap-world/mcq";
+import { AP_WORLD_IMPORTED_MCQ } from "@/lib/banks/ap-world/mcq-imported";
 import { SAT_MCQ } from "@/lib/banks/sat/mcq";
+import { SAT_IMPORTED_MCQ } from "@/lib/banks/sat/mcq-imported";
 import { shuffleArray } from "@/lib/utils";
 
 type Choice = "A" | "B" | "C" | "D";
@@ -12,8 +14,8 @@ type Choice = "A" | "B" | "C" | "D";
 const QUESTION_COUNTS = [10, 25, 50] as const;
 
 function getBank(subjectId: string): MCQQuestion[] {
-  if (subjectId === "ap-world") return AP_WORLD_MCQ;
-  if (subjectId === "sat") return SAT_MCQ as unknown as MCQQuestion[];
+  if (subjectId === "ap-world") return [...AP_WORLD_MCQ, ...AP_WORLD_IMPORTED_MCQ];
+  if (subjectId === "sat") return [...SAT_MCQ, ...SAT_IMPORTED_MCQ] as unknown as MCQQuestion[];
   return [];
 }
 
@@ -34,11 +36,32 @@ export default function MCQPage() {
   const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const sessionSavedRef = useRef(false);
 
   const filteredBank = useMemo(() => {
     if (selectedUnits.includes("all")) return bank;
     return bank.filter((q) => selectedUnits.includes(q.unit));
   }, [bank, selectedUnits]);
+
+  useEffect(() => {
+    if (!subject || !done || questions.length === 0 || sessionSavedRef.current) return;
+    sessionSavedRef.current = true;
+    const durationSeconds = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : null;
+
+    void fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subjectId: subject.id,
+        mode: "mcq",
+        score: Math.round((score / questions.length) * 100),
+        totalQ: questions.length,
+        correctQ: score,
+        duration: durationSeconds,
+      }),
+    });
+  }, [done, questions.length, score, startedAt, subject]);
 
   if (!subject) return <div className="p-8 text-[#8a8070]">Subject not found</div>;
 
@@ -66,6 +89,8 @@ export default function MCQPage() {
     setScore(0);
     setDone(false);
     setStarted(true);
+    setStartedAt(Date.now());
+    sessionSavedRef.current = false;
   };
 
   const answer = (choice: Choice) => {
